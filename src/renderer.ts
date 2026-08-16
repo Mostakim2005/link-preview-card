@@ -86,9 +86,9 @@ function attachMenu(container: HTMLElement, data: PreviewData, source: string, a
     menu.showAtPosition({ x: event.clientX ?? 0, y: event.clientY ?? 0 });
   };
   container.addEventListener('contextmenu', (event) => { event.preventDefault(); show(event); });
-  let timer: ReturnType<typeof setTimeout> | undefined;
+  let timer: number | undefined;
   container.addEventListener('touchstart', (event) => { const touch = event.touches[0]; if (!touch) return; timer = window.setTimeout(() => show(touch), 500); }, { passive: true });
-  const cancel = (): void => { if (timer) window.clearTimeout(timer); timer = undefined; };
+  const cancel = (): void => { if (timer !== undefined) window.clearTimeout(timer); timer = undefined; };
   container.addEventListener('touchend', cancel, { passive: true });
   container.addEventListener('touchmove', cancel, { passive: true });
 }
