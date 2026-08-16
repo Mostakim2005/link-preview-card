@@ -55,7 +55,7 @@ export class CookieManagerModal extends Modal {
     const status = await this.manager.status(provider);
     const setting = new Setting(this.contentEl).setName(label).setDesc(this.statusText(status, domain));
     setting.addTextArea((text) => {
-      text.setPlaceholder('name=value; name2=value2');
+      text.setPlaceholder('Name=value; name2=value2');
       text.inputEl.rows = 4;
       text.inputEl.autocomplete = 'off';
       text.inputEl.spellcheck = false;
