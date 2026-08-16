@@ -25,7 +25,10 @@ export default class LinkPreviewPlugin extends Plugin {
     this.registerMarkdownCodeBlockProcessor('link-preview', (source, el, ctx) => this.processPreview(source, el, ctx));
     this.registerEvent(this.app.workspace.on('editor-paste', (event, editor) => {
       if (event.defaultPrevented) return;
-      void this.handlePaste(event, editor);
+      const text = event.clipboardData?.getData('text/plain')?.trim() ?? '';
+      if (!extractUrls(text).length) return;
+      event.preventDefault();
+      void this.handlePaste(event, editor, text);
     }));
 
     this.addCommand({ id: 'scan-note-for-links', name: 'Scan current note for links and manage previews', callback: () => this.scanCurrentNote() });
@@ -35,7 +38,7 @@ export default class LinkPreviewPlugin extends Plugin {
     this.addCommand({ id: 'refresh-provider-cookies', name: 'Manage social-provider session cookies', callback: () => this.openCookieManager() });
   }
 
-  override onunload(): void {
+  override async onunload(): Promise<void> {
     this.metadata.clear();
     this.cookies.dispose();
   }
@@ -67,14 +70,10 @@ export default class LinkPreviewPlugin extends Plugin {
     }
   }
 
-  private async handlePaste(evt: ClipboardEvent, editor: import('obsidian').Editor): Promise<void> {
-    const text = evt.clipboardData?.getData('text/plain')?.trim() ?? '';
+  private async handlePaste(evt: ClipboardEvent, editor: import('obsidian').Editor, pastedText: string): Promise<void> {
+    const text = pastedText;
     const urls = extractUrls(text);
     if (!urls.length) return;
-    // Intentionally intercept supported URL pastes so the plugin can replace them with previews.
-    // eslint-disable-next-line obsidianmd/editor-drop-paste
-    evt.preventDefault();
-
     const from = editor.getCursor('from');
     const inside = blockAtPosition(editor, from);
     const insert = async (selected: string[]): Promise<void> => {
@@ -139,7 +138,7 @@ export default class LinkPreviewPlugin extends Plugin {
   }
 
   private async editLink(data: PreviewData, source: string): Promise<void> {
-    this.openTextModal('Edit link URL', data.url, async (next) => {
+    await this.openTextModal('Edit link URL', data.url, async (next) => {
       const url = extractUrls(next)[0];
       if (!url) { new Notice('Invalid URL'); return; }
       const fresh = await this.metadata.fetch(url, true);
@@ -153,7 +152,7 @@ export default class LinkPreviewPlugin extends Plugin {
         this.titleEl.setText(title);
         const input = this.contentEl.createEl('input', { type: 'text' });
         input.value = initialValue;
-        input.addClass('link-preview-text-input');
+        input.style.width = '100%';
         input.focus();
         input.select();
         const submit = (): void => {
@@ -170,7 +169,7 @@ export default class LinkPreviewPlugin extends Plugin {
   }
 
   private async changeTitle(data: PreviewData, source: string): Promise<void> {
-    this.openTextModal('Change title', data.title, async (title) => {
+    await this.openTextModal('Change title', data.title, async (title) => {
       const value = title.trim();
       if (!value) return;
       await this.replacePreviewById(data, source, { ...data, title: value });

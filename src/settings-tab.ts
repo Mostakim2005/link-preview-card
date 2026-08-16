@@ -9,7 +9,7 @@ export class LinkPreviewSettingTab extends PluginSettingTab {
   display(): void {
     const { containerEl } = this;
     containerEl.empty();
-    new Setting(containerEl).setName('Link preview card').setHeading();
+    new Setting(containerEl).setName('General').setHeading();
     this.toggle(containerEl, 'Embed YouTube videos', 'Show YouTube players inside preview cards.', 'embedYouTube');
     this.toggle(containerEl, 'Embed Vimeo videos', 'Show Vimeo players inside preview cards.', 'embedVimeo');
     this.toggle(containerEl, 'Embed TikTok', 'Use TikTok oEmbed metadata and optional session cookies.', 'embedTikTok');
