@@ -23,7 +23,10 @@ export default class LinkPreviewPlugin extends Plugin {
     this.addSettingTab(new LinkPreviewSettingTab(this.app, this));
 
     this.registerMarkdownCodeBlockProcessor('link-preview', (source, el, ctx) => this.processPreview(source, el, ctx));
-    this.registerEvent(this.app.workspace.on('editor-paste', (event, editor) => { void this.handlePaste(event, editor); }));
+    this.registerEvent(this.app.workspace.on('editor-paste', (event, editor) => {
+      if (event.defaultPrevented) return;
+      void this.handlePaste(event, editor);
+    }));
 
     this.addCommand({ id: 'scan-note-for-links', name: 'Scan current note for links and manage previews', callback: () => this.scanCurrentNote() });
     this.addCommand({ id: 'convert-links-in-note', name: 'Convert links in current note to previews', callback: () => this.convertAllLinksInCurrentNote() });
@@ -32,7 +35,7 @@ export default class LinkPreviewPlugin extends Plugin {
     this.addCommand({ id: 'refresh-provider-cookies', name: 'Manage social-provider session cookies', callback: () => this.openCookieManager() });
   }
 
-  override async onunload(): Promise<void> {
+  override onunload(): void {
     this.metadata.clear();
     this.cookies.dispose();
   }
@@ -134,7 +137,7 @@ export default class LinkPreviewPlugin extends Plugin {
   }
 
   private async editLink(data: PreviewData, source: string): Promise<void> {
-    await this.openTextModal('Edit link URL', data.url, async (next) => {
+    this.openTextModal('Edit link URL', data.url, async (next) => {
       const url = extractUrls(next)[0];
       if (!url) { new Notice('Invalid URL'); return; }
       const fresh = await this.metadata.fetch(url, true);
@@ -148,7 +151,7 @@ export default class LinkPreviewPlugin extends Plugin {
         this.titleEl.setText(title);
         const input = this.contentEl.createEl('input', { type: 'text' });
         input.value = initialValue;
-        input.style.width = '100%';
+        input.addClass('link-preview-text-input');
         input.focus();
         input.select();
         const submit = (): void => {
@@ -165,7 +168,7 @@ export default class LinkPreviewPlugin extends Plugin {
   }
 
   private async changeTitle(data: PreviewData, source: string): Promise<void> {
-    await this.openTextModal('Change title', data.title, async (title) => {
+    this.openTextModal('Change title', data.title, async (title) => {
       const value = title.trim();
       if (!value) return;
       await this.replacePreviewById(data, source, { ...data, title: value });
