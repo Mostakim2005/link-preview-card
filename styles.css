@@ -44,3 +44,5 @@
   color: var(--text-normal);
   white-space: pre-wrap;
 }
+
+.link-preview-text-input { width: 100%; }
