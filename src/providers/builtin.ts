@@ -176,7 +176,7 @@ function merge(first: PreviewData | null, second: PreviewData | null, provider: 
 interface JsonLd { name?: string; description?: string; image?: string; author?: string; }
 
 function parseJsonLd(doc: Document): JsonLd {
-  for (const node of [...doc.querySelectorAll('script[type="application/ld+json"]')]) {
+  for (const node of Array.from(doc.querySelectorAll('script[type="application/ld+json"]'))) {
     try {
       const value = JSON.parse(node.textContent || '') as unknown;
       const candidate = Array.isArray(value) ? value.find((item) => typeof item === 'object' && item !== null) : value;
@@ -219,7 +219,7 @@ function extractSocialStructuredData(doc: Document): { text: string; image: stri
       }
     }
   };
-  for (const node of [...doc.querySelectorAll('script[type="application/json"], script[type="application/ld+json"]')].slice(0, 25)) {
+  for (const node of Array.from(doc.querySelectorAll('script[type="application/json"], script[type="application/ld+json"]')).slice(0, 25)) {
     try { visit(JSON.parse(node.textContent || ''), 0); } catch { /* ignore non-JSON scripts */ }
   }
   const unique = [...new Set(values)];
