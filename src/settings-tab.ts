@@ -9,7 +9,6 @@ export class LinkPreviewSettingTab extends PluginSettingTab {
   display(): void {
     const { containerEl } = this;
     containerEl.empty();
-    new Setting(containerEl).setName('General').setHeading();
     this.toggle(containerEl, 'Embed YouTube videos', 'Show YouTube players inside preview cards.', 'embedYouTube');
     this.toggle(containerEl, 'Embed Vimeo videos', 'Show Vimeo players inside preview cards.', 'embedVimeo');
     this.toggle(containerEl, 'Embed TikTok', 'Use TikTok oEmbed metadata and optional session cookies.', 'embedTikTok');
@@ -26,7 +25,7 @@ export class LinkPreviewSettingTab extends PluginSettingTab {
     this.toggle(containerEl, 'Use social-provider session cookies', 'Allow the metadata service to send session cookies you explicitly supplied in this session.', 'useProviderCookies');
     this.toggle(containerEl, 'Refresh stale previews when opened', 'Automatically refresh previews older than the cache duration.', 'autoRefreshOnOpen');
 
-    new Setting(containerEl).setName('Social-provider session cookies').setDesc('Configure optional in-memory cookies for facebook, instagram, Reddit, and tiktok.').addButton((button) => button.setButtonText('Manage').onClick(() => new CookieManagerModal(this.app, this.plugin.cookies).open()));
+    new Setting(containerEl).setName('Social-provider session cookies').setDesc('Configure optional cookies for facebook, Instagram, Reddit, and TikTok.').addButton((button) => button.setButtonText('Manage').onClick(() => new CookieManagerModal(this.app, this.plugin.cookies).open()));
     new Setting(containerEl).setName('Cache duration (minutes)').addText((text) => text.setValue(String(this.plugin.settings.cacheMinutes)).onChange(async (value) => this.saveNumber('cacheMinutes', value, 0, 10080)));
     new Setting(containerEl).setName('Maximum cache entries').addText((text) => text.setValue(String(this.plugin.settings.maxCacheEntries)).onChange(async (value) => this.saveNumber('maxCacheEntries', value, 10, 500)));
     new Setting(containerEl).setName('Maximum description length').addText((text) => text.setValue(String(this.plugin.settings.maxDescriptionLength)).onChange(async (value) => this.saveNumber('maxDescriptionLength', value, 80, 5000)));

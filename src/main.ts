@@ -15,7 +15,11 @@ export default class LinkPreviewPlugin extends Plugin {
   metadata!: MetadataService;
   cookies!: CookieSessionManager;
 
-  override async onload(): Promise<void> {
+  override onload(): void {
+    void this.initialize();
+  }
+
+  private async initialize(): Promise<void> {
     this.settings = normalizeSettings(await this.loadData());
     this.cookies = new CookieSessionManager(this.app);
     await this.cookies.initialize();
@@ -38,9 +42,9 @@ export default class LinkPreviewPlugin extends Plugin {
     this.addCommand({ id: 'refresh-provider-cookies', name: 'Manage social-provider session cookies', callback: () => this.openCookieManager() });
   }
 
-  override async onunload(): Promise<void> {
-    this.metadata.clear();
-    this.cookies.dispose();
+  override onunload(): void {
+    this.metadata?.clear();
+    this.cookies?.dispose();
   }
 
   private openCookieManager(): void {
@@ -138,7 +142,7 @@ export default class LinkPreviewPlugin extends Plugin {
   }
 
   private async editLink(data: PreviewData, source: string): Promise<void> {
-    await this.openTextModal('Edit link URL', data.url, async (next) => {
+    this.openTextModal('Edit link URL', data.url, async (next) => {
       const url = extractUrls(next)[0];
       if (!url) { new Notice('Invalid URL'); return; }
       const fresh = await this.metadata.fetch(url, true);
@@ -152,7 +156,7 @@ export default class LinkPreviewPlugin extends Plugin {
         this.titleEl.setText(title);
         const input = this.contentEl.createEl('input', { type: 'text' });
         input.value = initialValue;
-        input.style.width = '100%';
+        input.addClass('link-preview-text-input');
         input.focus();
         input.select();
         const submit = (): void => {
@@ -169,7 +173,7 @@ export default class LinkPreviewPlugin extends Plugin {
   }
 
   private async changeTitle(data: PreviewData, source: string): Promise<void> {
-    await this.openTextModal('Change title', data.title, async (title) => {
+    this.openTextModal('Change title', data.title, async (title) => {
       const value = title.trim();
       if (!value) return;
       await this.replacePreviewById(data, source, { ...data, title: value });
