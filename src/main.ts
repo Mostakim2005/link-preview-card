@@ -71,6 +71,8 @@ export default class LinkPreviewPlugin extends Plugin {
     const text = evt.clipboardData?.getData('text/plain')?.trim() ?? '';
     const urls = extractUrls(text);
     if (!urls.length) return;
+    // Intentionally intercept supported URL pastes so the plugin can replace them with previews.
+    // eslint-disable-next-line obsidianmd/editor-drop-paste
     evt.preventDefault();
 
     const from = editor.getCursor('from');
