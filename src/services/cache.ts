@@ -37,7 +37,7 @@ export class MetadataCache {
 
   private trim(): void {
     while (this.entries.size > this.maxEntries) {
-      const oldest = this.entries.keys().next().value as string | undefined;
+      const oldest = this.entries.keys().next().value;
       if (!oldest) break;
       this.entries.delete(oldest);
     }

@@ -76,14 +76,14 @@ export class CookieSessionManager {
     if (!cookie) return false;
 
     const record: CookieSessionRecord = { cookie, updatedAt: Date.now(), expiresAt };
-    await this.app.secretStorage.setSecret(SECRET_IDS[provider], JSON.stringify(record));
+    this.app.secretStorage.setSecret(SECRET_IDS[provider], JSON.stringify(record));
     this.cache.set(provider, record);
     return true;
   }
 
   async clear(provider?: CookieProvider): Promise<void> {
     if (provider) {
-      await this.app.secretStorage.setSecret(SECRET_IDS[provider], '');
+      this.app.secretStorage.setSecret(SECRET_IDS[provider], '');
       this.cache.delete(provider);
       return;
     }
