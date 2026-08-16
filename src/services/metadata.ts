@@ -68,7 +68,7 @@ export class MetadataService {
     const title = meta('meta[property="og:title"]') || meta('meta[name="twitter:title"]') || doc.title.trim() || url;
     const descriptionRaw = meta('meta[property="og:description"]') || meta('meta[name="twitter:description"]') || meta('meta[name="description"]');
     const description = settings.fetchDescription ? descriptionRaw.slice(0, settings.maxDescriptionLength) : undefined;
-    const images = [...doc.querySelectorAll('meta[property="og:image"], meta[property="og:image:url"], meta[name="twitter:image"]')]
+    const images = Array.from(doc.querySelectorAll('meta[property="og:image"], meta[property="og:image:url"], meta[name="twitter:image"]'))
       .map((node) => absoluteUrl(url, node.getAttribute('content'))).filter(Boolean);
     const uniqueImages = [...new Set(images)].slice(0, settings.maxGalleryImages);
     const image = uniqueImages[0] || `https://www.google.com/s2/favicons?domain=${encodeURIComponent(hostOf(url))}&sz=128`;
