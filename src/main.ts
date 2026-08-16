@@ -1,114 +1,217 @@
-import {
-	Editor,
-	MarkdownView,
-	MarkdownFileInfo,
-	Modal,
-	Notice,
-	Plugin,
-} from 'obsidian';
-import {
-	DEFAULT_SETTINGS,
-	MyPluginSettings,
-	SampleSettingTab,
-} from './settings';
+import { MarkdownPostProcessorContext, Notice, Plugin, TFile, Modal } from 'obsidian';
+import { extractUrls } from './utils/url';
+import { blockAtPosition, createBlock, findBlockById, makeId, parseBlocks, replaceBlockByIdentity } from './utils/preview-block';
+import { DEFAULT_SETTINGS, normalizeSettings } from './settings';
+import type { PluginSettings, PreviewData } from './types';
+import { MetadataService } from './services/metadata';
+import { LinkPreviewSettingTab } from './settings-tab';
+import { CookieSessionManager } from './services/cookies';
+import { UrlSelectionModal } from './ui/selection-modal';
+import { renderPreview, type RendererActions } from './renderer';
+import { CookieManagerModal } from './ui/cookie-manager-modal';
 
-// Remember to rename these classes and interfaces!
+export default class LinkPreviewPlugin extends Plugin {
+  settings: PluginSettings = DEFAULT_SETTINGS;
+  metadata!: MetadataService;
+  cookies!: CookieSessionManager;
 
-export default class MyPlugin extends Plugin {
-	settings!: MyPluginSettings;
+  override async onload(): Promise<void> {
+    this.settings = normalizeSettings(await this.loadData());
+    this.cookies = new CookieSessionManager(this.app);
+    await this.cookies.initialize();
+    this.metadata = new MetadataService(() => this.settings, this.cookies);
+    this.addSettingTab(new LinkPreviewSettingTab(this.app, this));
 
-	async onload() {
-		await this.loadSettings();
+    this.registerMarkdownCodeBlockProcessor('link-preview', (source, el, ctx) => this.processPreview(source, el, ctx));
+    this.registerEvent(this.app.workspace.on('editor-paste', (event, editor) => { void this.handlePaste(event, editor); }));
 
-		// This creates an icon in the left ribbon.
-		this.addRibbonIcon('dice', 'Sample', (_evt: MouseEvent) => {
-			// Called when the user clicks the icon.
-			new Notice('This is a notice!');
-		});
+    this.addCommand({ id: 'scan-note-for-links', name: 'Scan current note for links and manage previews', callback: () => this.scanCurrentNote() });
+    this.addCommand({ id: 'convert-links-in-note', name: 'Convert links in current note to previews', callback: () => this.convertAllLinksInCurrentNote() });
+    this.addCommand({ id: 'refresh-previews-in-note', name: 'Refresh previews in current note', callback: () => this.refreshCurrentNotePreviews() });
+    this.addCommand({ id: 'clear-metadata-cache', name: 'Clear link preview metadata cache', callback: () => { this.metadata.clear(); new Notice('Link preview cache cleared'); } });
+    this.addCommand({ id: 'refresh-provider-cookies', name: 'Manage social-provider session cookies', callback: () => this.openCookieManager() });
+  }
 
-		// This adds a status bar item to the bottom of the app. Does not work on mobile apps.
-		const statusBarItemEl = this.addStatusBarItem();
-		statusBarItemEl.setText('Status bar text');
+  override async onunload(): Promise<void> {
+    this.metadata.clear();
+    this.cookies.dispose();
+  }
 
-		// This adds a simple command that can be triggered anywhere
-		this.addCommand({
-			id: 'open-modal-simple',
-			name: 'Open modal (simple)',
-			callback: () => {
-				new SampleModal(this.app).open();
-			},
-		});
-		// This adds an editor command that can perform some operation on the current editor instance
-		this.addCommand({
-			id: 'replace-selected',
-			name: 'Replace selected content',
-			editorCallback: (
-				editor: Editor,
-				_ctx: MarkdownView | MarkdownFileInfo,
-			) => {
-				editor.replaceSelection('Sample editor command');
-			},
-		});
-		// This adds a complex command that can check whether the current state of the app allows execution of the command
-		this.addCommand({
-			id: 'open-modal-complex',
-			name: 'Open modal (complex)',
-			checkCallback: (checking: boolean) => {
-				// Conditions to check
-				const markdownView =
-					this.app.workspace.getActiveViewOfType(MarkdownView);
-				if (markdownView) {
-					// If checking is true, we're simply "checking" if the command can be run.
-					// If checking is false, then we want to actually perform the operation.
-					if (!checking) {
-						new SampleModal(this.app).open();
-					}
+  private openCookieManager(): void {
+    const manager = new CookieManagerModal(this.app, this.cookies);
+    manager.open();
+  }
 
-					// This command will only show up in Command Palette when the check function returns true
-					return true;
-				}
-				return false;
-			},
-		});
+  async saveSettings(): Promise<void> {
+    this.metadata.reconfigure();
+    await this.saveData(this.settings);
+  }
 
-		// This adds a settings tab so the user can configure various aspects of the plugin
-		this.addSettingTab(new SampleSettingTab(this.app, this));
+  private processPreview(source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext): void {
+    try {
+      const data = JSON.parse(source) as PreviewData;
+      if (!data.url || typeof data.url !== 'string') throw new Error('Missing URL');
+      const normalized: PreviewData = { ...data, id: data.id ?? makeId() };
+      const actions: RendererActions = {
+        refresh: async (current) => { const fresh = await this.metadata.fetch(current.url, true); await this.updatePreviewSource(ctx.sourcePath, current, fresh); },
+        edit: async (current, raw) => this.editLink(current, raw),
+        changeTitle: async (current, raw) => this.changeTitle(current, raw),
+        revert: async (current) => this.revertPreview(ctx.sourcePath, current),
+      };
+      renderPreview(el, normalized, source, this.settings, actions);
+    } catch {
+      el.createEl('pre', { text: source });
+    }
+  }
 
-		// If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
-		// Using this function will automatically remove the event listener when this plugin is disabled.
-		this.registerDomEvent(activeDocument, 'click', (_evt: MouseEvent) => {
-			new Notice('Click');
-		});
+  private async handlePaste(evt: ClipboardEvent, editor: import('obsidian').Editor): Promise<void> {
+    const text = evt.clipboardData?.getData('text/plain')?.trim() ?? '';
+    const urls = extractUrls(text);
+    if (!urls.length) return;
+    evt.preventDefault();
 
-		// When registering intervals, this function will automatically clear the interval when the plugin is disabled.
-		this.registerInterval(
-			window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000),
-		);
-	}
+    const from = editor.getCursor('from');
+    const inside = blockAtPosition(editor, from);
+    const insert = async (selected: string[]): Promise<void> => {
+      const replacements = await Promise.all(selected.map(async (url) => createBlock({ ...(await this.metadata.fetch(url)), id: makeId() })));
+      const byUrl = new Map(selected.map((url, index) => [url, replacements[index] ?? '']));
+      const replacementText = text.replace(/https?:\/\/[^\s<>()"']+/gi, (found) => byUrl.get(found.replace(/[.,;:!?]+$/, '')) ?? found);
+      if (inside) editor.replaceRange(replacementText, { line: inside.endLine + 1, ch: 0 });
+      else editor.replaceSelection(replacementText);
+    };
 
-	onunload() {}
+    if (urls.length === 1 && text === urls[0] && !inside) {
+      const data = await this.metadata.fetch(urls[0]);
+      editor.replaceSelection(createBlock({ ...data, id: makeId() }));
+      return;
+    }
+    if (urls.length > 1 || text !== urls[0]) new UrlSelectionModal(this.app, urls, (selected) => { void insert(selected); }).open();
+    else await insert(urls);
+  }
 
-	async loadSettings() {
-		this.settings = Object.assign(
-			{},
-			DEFAULT_SETTINGS,
-			(await this.loadData()) as Partial<MyPluginSettings>,
-		);
-	}
+  private async scanCurrentNote(): Promise<void> {
+    const file = this.app.workspace.getActiveFile();
+    if (!file) { new Notice('No active note'); return; }
+    const content = await this.app.vault.cachedRead(file);
+    const blocks = parseBlocks(content);
+    const masked = maskPreviewBlocks(content);
+    const urls = extractUrls(masked);
+    if (!urls.length && !blocks.length) { new Notice('No links found in note'); return; }
+    new Notice(`${urls.length} plain link(s), ${blocks.length} preview(s) found`);
+  }
 
-	async saveSettings() {
-		await this.saveData(this.settings);
-	}
+  private async convertAllLinksInCurrentNote(): Promise<void> {
+    const file = this.app.workspace.getActiveFile();
+    if (!file) { new Notice('No active note'); return; }
+    const current = await this.app.vault.cachedRead(file);
+    const urls = [...new Set(extractUrls(maskPreviewBlocks(current)))];
+    if (!urls.length) { new Notice('No plain links found'); return; }
+    const data = new Map<string, PreviewData>();
+    for (const url of urls) data.set(url, { ...(await this.metadata.fetch(url)), id: makeId() });
+    await this.app.vault.process(file, (content) => content.replace(/https?:\/\/[^\s<>()"']+/gi, (found) => data.get(found.replace(/[.,;:!?]+$/, '')) ? createBlock(data.get(found.replace(/[.,;:!?]+$/, ''))!) : found));
+    new Notice(`Converted ${urls.length} link(s) to previews`);
+  }
+
+  private async refreshCurrentNotePreviews(): Promise<void> {
+    const file = this.app.workspace.getActiveFile();
+    if (!file) { new Notice('No active note'); return; }
+    const content = await this.app.vault.cachedRead(file);
+    const blocks = parseBlocks(content);
+    if (!blocks.length) { new Notice('No previews found'); return; }
+    const refreshed = new Map<string, PreviewData>();
+    for (const block of blocks) refreshed.set(block.data.id ?? block.data.url, { ...(await this.metadata.fetch(block.data.url, true)), id: block.data.id ?? makeId() });
+    await this.app.vault.process(file, (latest) => {
+      const currentBlocks = parseBlocks(latest);
+      let result = latest;
+      for (const block of [...currentBlocks].reverse()) {
+        const fresh = refreshed.get(block.data.id ?? block.data.url);
+        if (!fresh) continue;
+        result = replaceBlockByIdentity(result, block, createBlock(fresh));
+      }
+      return result;
+    });
+    new Notice(`Refreshed ${blocks.length} preview(s)`);
+  }
+
+  private async editLink(data: PreviewData, source: string): Promise<void> {
+    await this.openTextModal('Edit link URL', data.url, async (next) => {
+      const url = extractUrls(next)[0];
+      if (!url) { new Notice('Invalid URL'); return; }
+      const fresh = await this.metadata.fetch(url, true);
+      await this.replacePreviewById(data, source, { ...fresh, id: data.id ?? makeId() });
+    });
+  }
+
+  private openTextModal(title: string, initialValue: string, onSubmit: (value: string) => Promise<void>): void {
+    class TextModal extends Modal {
+      override onOpen(): void {
+        this.titleEl.setText(title);
+        const input = this.contentEl.createEl('input', { type: 'text' });
+        input.value = initialValue;
+        input.style.width = '100%';
+        input.focus();
+        input.select();
+        const submit = (): void => {
+          const value = input.value;
+          this.close();
+          void onSubmit(value);
+        };
+        input.addEventListener('keydown', (event) => { if (event.key === 'Enter') submit(); });
+        this.contentEl.createEl('button', { text: 'Save', cls: 'mod-cta' }).addEventListener('click', submit);
+      }
+      override onClose(): void { this.contentEl.empty(); }
+    }
+    new TextModal(this.app).open();
+  }
+
+  private async changeTitle(data: PreviewData, source: string): Promise<void> {
+    await this.openTextModal('Change title', data.title, async (title) => {
+      const value = title.trim();
+      if (!value) return;
+      await this.replacePreviewById(data, source, { ...data, title: value });
+    });
+  }
+
+  private async replacePreviewById(data: PreviewData, source: string, replacement: PreviewData): Promise<void> {
+    const file = this.app.workspace.getActiveFile();
+    if (!file) return;
+    await this.app.vault.process(file, (content) => {
+      const id = data.id;
+      const block = id ? findBlockById(content, id) : findLegacyBlock(content, source);
+      if (!block) return content;
+      return replaceBlockByIdentity(content, block, createBlock(replacement));
+    });
+    new Notice('Link preview updated');
+  }
+
+  private async updatePreviewSource(path: string, current: PreviewData, fresh: PreviewData): Promise<void> {
+    const file = this.app.vault.getAbstractFileByPath(path);
+    if (!(file instanceof TFile)) return;
+    await this.replacePreviewInFile(file, current, { ...fresh, id: current.id ?? makeId() });
+  }
+
+  private async replacePreviewInFile(file: TFile, current: PreviewData, replacement: PreviewData): Promise<void> {
+    await this.app.vault.process(file, (content) => {
+      const block = current.id ? findBlockById(content, current.id) : findLegacyBlock(content, JSON.stringify(current));
+      return block ? replaceBlockByIdentity(content, block, createBlock(replacement)) : content;
+    });
+  }
+
+  private async revertPreview(path: string, data: PreviewData): Promise<void> {
+    const file = this.app.vault.getAbstractFileByPath(path);
+    if (!(file instanceof TFile)) return;
+    await this.app.vault.process(file, (content) => {
+      const block = data.id ? findBlockById(content, data.id) : findLegacyBlock(content, JSON.stringify(data));
+      return block ? replaceBlockByIdentity(content, block, `\n${data.url}\n`) : content;
+    });
+    new Notice('Preview reverted to link');
+  }
 }
 
-class SampleModal extends Modal {
-	onOpen() {
-		const { contentEl } = this;
-		contentEl.setText('Woah!');
-	}
+function maskPreviewBlocks(content: string): string {
+  return content.replace(/~~~link-preview\n[\s\S]*?\n~~~/g, '%%LINK_PREVIEW%%');
+}
 
-	onClose() {
-		const { contentEl } = this;
-		contentEl.empty();
-	}
+function findLegacyBlock(content: string, source: string) {
+  return parseBlocks(content).find((block) => block.source === source) ?? null;
 }
