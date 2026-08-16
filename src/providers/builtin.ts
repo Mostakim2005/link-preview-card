@@ -178,9 +178,11 @@ interface JsonLd { name?: string; description?: string; image?: string; author?:
 function parseJsonLd(doc: Document): JsonLd {
   for (const node of Array.from(doc.querySelectorAll('script[type="application/ld+json"]'))) {
     try {
-      const value: unknown = JSON.parse(node.textContent || '');
-      const candidates: unknown[] = Array.isArray(value) ? value : [value];
-      const candidate = candidates.find((item: unknown) => typeof item === 'object' && item !== null);
+      const parsed: unknown = JSON.parse(node.textContent || '');
+      const candidates: unknown[] = Array.isArray(parsed) ? parsed : [parsed];
+      const candidate: unknown = candidates.find(
+        (item: unknown) => typeof item === 'object' && item !== null,
+      );
       if (typeof candidate === 'object' && candidate !== null) {
         const obj = candidate as Record<string, unknown>;
         const authorObj = typeof obj.author === 'object' && obj.author !== null ? obj.author as Record<string, unknown> : undefined;
