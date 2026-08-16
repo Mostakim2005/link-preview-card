@@ -27,7 +27,7 @@ export class CookieManagerModal extends Modal {
     this.contentEl.empty();
     this.titleEl.setText('Social provider cookies');
     this.contentEl.createEl('p', {
-      text: 'Store your own session cookies once in Obsidian SecretStorage. The plugin keeps only the secret name in plugin settings; cookie values are not written to data.json.',
+      text: 'Store your own session cookies once in Obsidian secretstorage. The plugin keeps only the secret name in plugin settings; cookie values are not written to data.json.',
     });
 
     new Setting(this.contentEl)
@@ -43,7 +43,7 @@ export class CookieManagerModal extends Modal {
 
     this.contentEl.createEl('p', {
       cls: 'setting-item-description',
-      text: 'Only HTTP Cookie name=value pairs are accepted. Do not paste passwords, browser exports, cookie attributes, or unrelated domains. Treat session cookies like passwords.',
+      text: 'Only HTTP cookie name=value pairs are accepted. Do not paste passwords, browser exports, cookie attributes, or unrelated domains. Treat session cookies like passwords.',
     });
 
     new Setting(this.contentEl)
@@ -67,13 +67,13 @@ export class CookieManagerModal extends Modal {
     setting.addButton((button) => button.setButtonText(status.configured ? 'Replace' : 'Save').onClick(async () => {
       const textarea = this.contentEl.querySelector<HTMLTextAreaElement>(`textarea[data-cookie-provider="${provider}"]`);
       if (!textarea?.value.trim()) {
-        new Notice('Enter a Cookie header value first.');
+        new Notice('Enter a cookie header value first.');
         return;
       }
       const expiresAt = this.expiryDays ? Date.now() + this.expiryDays * 86_400_000 : undefined;
       const ok = await this.manager.set(provider, textarea.value, expiresAt);
       if (!ok) {
-        new Notice('Invalid Cookie header. Use only name=value pairs separated by semicolons.');
+        new Notice('Invalid cookie header. Use only name=value pairs separated by semicolons.');
         return;
       }
       new Notice(`${label} session stored securely`);
