@@ -179,7 +179,8 @@ function parseJsonLd(doc: Document): JsonLd {
   for (const node of Array.from(doc.querySelectorAll('script[type="application/ld+json"]'))) {
     try {
       const value: unknown = JSON.parse(node.textContent || '');
-      const candidate = Array.isArray(value) ? value.find((item) => typeof item === 'object' && item !== null) : value;
+      const candidates: unknown[] = Array.isArray(value) ? value : [value];
+      const candidate = candidates.find((item: unknown) => typeof item === 'object' && item !== null);
       if (typeof candidate === 'object' && candidate !== null) {
         const obj = candidate as Record<string, unknown>;
         const authorObj = typeof obj.author === 'object' && obj.author !== null ? obj.author as Record<string, unknown> : undefined;
