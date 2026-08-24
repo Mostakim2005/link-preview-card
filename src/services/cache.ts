@@ -1,4 +1,5 @@
 import type { PreviewData } from '../types';
+import { hostOf } from '../utils/url';
 
 interface CacheEntry { data: PreviewData; expiresAt: number; }
 
@@ -32,6 +33,13 @@ export class MetadataCache {
   clear(): void { this.entries.clear(); }
 
   delete(url: string): void { this.entries.delete(url); }
+
+  clearHost(host: string): void {
+    const normalized = host.replace(/^www\./i, '').toLowerCase();
+    for (const key of this.entries.keys()) if (hostOf(key) === normalized) this.entries.delete(key);
+  }
+
+  keys(): string[] { return [...this.entries.keys()]; }
 
   size(): number { return this.entries.size; }
 
