@@ -1,6 +1,8 @@
 export type ProviderId = 'generic' | 'youtube' | 'vimeo' | 'tiktok' | 'reddit' | 'instagram' | 'facebook' | 'x';
 
 export type CookieProvider = 'facebook' | 'instagram' | 'reddit' | 'tiktok';
+export type PreviewBehavior = 'automatic' | 'always' | 'never' | 'ask';
+export type PreviewCardMode = 'compact' | 'expanded';
 
 export interface CookieSessionRecord {
   cookie: string;
@@ -13,6 +15,10 @@ export interface CookieSessionStatus {
   updatedAt?: number;
   expiresAt?: number;
   masked?: string;
+}
+
+export interface DomainRule {
+  behavior: PreviewBehavior;
 }
 
 export interface PluginSettings {
@@ -36,6 +42,15 @@ export interface PluginSettings {
   maxGalleryImages: number;
   autoRefreshOnOpen: boolean;
   useProviderCookies: boolean;
+  previewBehavior: PreviewBehavior;
+  previewCardMode: PreviewCardMode;
+  normalizeTrackingParams: boolean;
+  requestTimeoutMs: number;
+  failureCacheSeconds: number;
+  blockedDomains: string[];
+  domainRules: Record<string, DomainRule>;
+  recentPreviewUrls: string[];
+  failedPreviewUrls: string[];
 }
 
 export interface PreviewData {
