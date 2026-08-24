@@ -8,9 +8,19 @@ export function parseHttpUrl(value: string): URL | null {
   try {
     const url = new URL(cleaned);
     return url.protocol === 'http:' || url.protocol === 'https:' ? url : null;
-  } catch {
-    return null;
+  } catch { return null; }
+}
+
+export function normalizeUrl(value: string, stripTracking = true): string {
+  const parsed = parseHttpUrl(value);
+  if (!parsed) return cleanUrl(value);
+  parsed.hash = '';
+  if (stripTracking) {
+    for (const key of [...parsed.searchParams.keys()]) {
+      if (/^(utm_[^=]+|fbclid|gclid|mc_cid|mc_eid|ref|ref_src)$/i.test(key)) parsed.searchParams.delete(key);
+    }
   }
+  return parsed.toString();
 }
 
 export function extractUrls(text: string): string[] {
@@ -57,7 +67,10 @@ export function googleDriveDownloadUrl(value: string): string | null {
 
 export function absoluteUrl(base: string, value: string | null | undefined): string {
   if (!value) return '';
-  try { return new URL(value, base).href; } catch { return ''; }
+  try {
+    const result = new URL(value, base);
+    return result.protocol === 'http:' || result.protocol === 'https:' ? result.href : '';
+  } catch { return ''; }
 }
 
 export function videoEmbedUrl(value: string): string | null {
