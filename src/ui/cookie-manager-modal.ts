@@ -33,7 +33,7 @@ export class CookieManagerModal extends Modal {
     for (const [provider, label, domain] of LABELS) await this.addProviderRow(provider, label, domain);
 
     this.contentEl.createEl('h3', { text: 'Custom site sessions' });
-    this.contentEl.createEl('p', { text: 'Useful for sites that require your own logged-in session. The plugin does not bypass login or CAPTCHA.' });
+    this.contentEl.createEl('p', { text: 'Useful for sites that require your own logged-in session. The plugin does not bypass login or captcha.' });
     for (const domain of CUSTOM_DOMAINS) await this.addCustomRow(domain);
 
     new Setting(this.contentEl).addButton((button) => button.setButtonText('Clear all').setWarning().onClick(() => { void this.manager.clear().then(() => this.render()); })).addButton((button) => button.setButtonText('Done').setCta().onClick(() => this.close()));

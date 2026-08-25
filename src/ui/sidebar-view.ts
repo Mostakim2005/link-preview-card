@@ -92,12 +92,12 @@ export class LinkPreviewSidebarView extends ItemView {
 
     const recent = root.createDiv({ cls: 'link-preview-sidebar-section' });
     recent.createEl('h3', { text: 'Recent previews' });
-    for (const url of this.plugin.settings.recentPreviewUrls.slice(0, 10)) recent.createEl('div', { text: url, cls: 'link-preview-sidebar-item' });
+    for (const url of this.plugin.settings.recentPreviewUrls.slice(0, 10)) recent.createDiv({ text: url, cls: 'link-preview-sidebar-item' });
 
     const failed = root.createDiv({ cls: 'link-preview-sidebar-section' });
     failed.createEl('h3', { text: 'Failed previews' });
     if (!this.plugin.settings.failedPreviewUrls.length) failed.createSpan({ text: 'No recent failures.' });
-    for (const url of this.plugin.settings.failedPreviewUrls.slice(0, 10)) failed.createEl('div', { text: `${hostOf(url)} — ${url}`, cls: 'link-preview-sidebar-item' });
+    for (const url of this.plugin.settings.failedPreviewUrls.slice(0, 10)) failed.createDiv({ text: `${hostOf(url)} — ${url}`, cls: 'link-preview-sidebar-item' });
 
     const cookie = root.createDiv({ cls: 'link-preview-sidebar-section' });
     cookie.createEl('h3', { text: 'Sessions and cookies' });
