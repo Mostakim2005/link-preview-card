@@ -83,7 +83,6 @@ export class MetadataService {
   }
 
   private async fetchGeneric(url: string, context: ProviderContext): Promise<PreviewData> {
-    const settings = context.settings;
     const response = await requestUrl({ url, method: 'GET', headers: await providerHeaders(url, context), throw: true });
     return this.parseHtml(url, response.text);
   }
