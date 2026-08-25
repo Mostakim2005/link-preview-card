@@ -1,4 +1,4 @@
-import { MarkdownPostProcessorContext, Notice, Plugin, TFile, Modal, WorkspaceLeaf, MarkdownView } from 'obsidian';
+import { MarkdownPostProcessorContext, Notice, Plugin, TFile, Modal, MarkdownView } from 'obsidian';
 import { extractUrls, hostOf, normalizeUrl, parseHttpUrl } from './utils/url';
 import { blockAtPosition, createBlock, findBlockById, makeId, parseBlocks, replaceBlockByIdentity } from './utils/preview-block';
 import { DEFAULT_SETTINGS, normalizeSettings } from './settings';
@@ -55,11 +55,13 @@ export default class LinkPreviewPlugin extends Plugin {
 
   async openSidebar(): Promise<void> {
     const existing = this.app.workspace.getLeavesOfType(LINK_PREVIEW_VIEW)[0];
-    if (existing) { this.app.workspace.revealLeaf(existing); return; }
+    if (existing) {
+      await existing.setViewState({ type: LINK_PREVIEW_VIEW, active: true });
+      return;
+    }
     const leaf = this.app.workspace.getRightLeaf(false);
     if (!leaf) return;
     await leaf.setViewState({ type: LINK_PREVIEW_VIEW, active: true });
-    this.app.workspace.revealLeaf(leaf);
   }
 
   async saveSettings(): Promise<void> {
@@ -161,7 +163,7 @@ export default class LinkPreviewPlugin extends Plugin {
 
   private handleLinkContext(event: MouseEvent): void {
     if (this.isInsideOwnUi(event.target)) return;
-    const target = event.target instanceof Element ? event.target.closest('a[href]') as HTMLAnchorElement | null : null;
+    const target = event.target instanceof Element ? event.target.closest<HTMLAnchorElement>('a[href]') : null;
     if (!target) return;
     const url = parseHttpUrl(target.href);
     if (!url) return;
@@ -173,7 +175,7 @@ export default class LinkPreviewPlugin extends Plugin {
 
   private handleLinkTouchStart(event: TouchEvent): void {
     if (this.isInsideOwnUi(event.target)) return;
-    const target = event.target instanceof Element ? event.target.closest('a[href]') as HTMLAnchorElement | null : null;
+    const target = event.target instanceof Element ? event.target.closest<HTMLAnchorElement>('a[href]') : null;
     if (!target) return;
     const url = parseHttpUrl(target.href);
     if (!url || !this.shouldOwnInteraction(target)) return;
