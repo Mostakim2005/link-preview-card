@@ -1,11 +1,9 @@
 ﻿{
-	"id": "link-preview-card",
-	"name": "Link Preview Card",
-	"version": "4.4.0",
-	"minAppVersion": "1.6.0",
-	"description": "Paste a link on an empty line to get an image preview card with alias, copy URL, refresh, and revert actions.",
-	"author": "Mostakim2005",
-	"authorUrl": "https://github.com/Mostakim2005",
-	"isDesktopOnly": false
+  "id": "link-preview-card",
+  "name": "Link Preview Card",
+  "version": "4.4.0",
+  "minAppVersion": "1.6.0",
+  "description": "Paste a link on an empty line to get an image preview card with alias, copy URL, refresh, and revert actions.",
+  "author": "Mostakim2005",
+  "isDesktopOnly": false
 }
-
