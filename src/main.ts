@@ -1,8 +1,8 @@
-import { Plugin, Notice, TFile, MarkdownView } from "obsidian";
+﻿import { Plugin, Notice, TFile, MarkdownView } from "obsidian";
 import { DEFAULT_SETTINGS } from "./settings";
 import type { LinkPreviewSettings } from "./types";
-// Fresh Nihon 4.4.0-derived entry (1745-line bundle). Full split
-// (TrackerStripper, MetadataFetcher, CardRenderer, modals) is incremental — see README.
+// Link Preview Card
+// (tracker.ts (cleanTrackingParams, parseUrl)) is incremental â€” see README.
 export default class LinkPreviewCard extends Plugin {
   settings!: LinkPreviewSettings;
 
@@ -31,20 +31,20 @@ export default class LinkPreviewCard extends Plugin {
     this.addCommand({
       id: "manage-links",
       name: "Manage links in current note",
-      callback: () => new Notice("Manage links — full UI port pending."),
+      callback: () => new Notice("Manage links â€” full UI port pending."),
     });
     this.addCommand({
       id: "convert-line-to-preview",
       name: "Convert link on current line to preview",
-      callback: () => new Notice("Convert to preview — full port pending."),
+      callback: () => new Notice("Convert to preview â€” full port pending."),
     });
     this.addCommand({
       id: "clean-tracking-params",
       name: "Clean tracking parameters from all links in note",
-      callback: () => new Notice("Clean trackers — full port pending."),
+      callback: () => new Notice("Clean trackers â€” full port pending."),
     });
 
-    this.addRibbonIcon("link", "Manage links in current note", () => new Notice("Link Preview Card — pilot build."));
+    this.addRibbonIcon("link", "Manage links in current note", () => new Notice("Link Preview Card â€” pilot build."));
     this.addSettingTab(new LinkPreviewSettingPlaceholder(this.app, this));
   }
 
@@ -71,7 +71,9 @@ class LinkPreviewSettingPlaceholder extends PluginSettingTab {
   display(): void {
     const { containerEl } = this;
     containerEl.empty();
-    containerEl.createEl("h2", { text: "Link Preview Card — pilot" });
+    containerEl.createEl("h2", { text: "Link Preview Card â€” pilot" });
     containerEl.createEl("p", { text: "Full settings UI port is next split step. Defaults match Nihon 4.4.0." });
   }
 }
+
+

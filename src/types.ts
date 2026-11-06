@@ -1,4 +1,4 @@
-// Link Preview Card — faithful types from live Nihon 4.4.0 bundle (1745 lines)
+﻿// Link Preview Card
 export interface LinkPreviewSettings {
   autoPreview: boolean;
   showDescription: boolean;
@@ -30,3 +30,5 @@ export interface PreviewData {
   favicon?: string;
   siteName?: string;
 }
+
+
