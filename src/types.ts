@@ -1,56 +1,24 @@
-export type ProviderId = 'generic' | 'youtube' | 'vimeo' | 'tiktok' | 'reddit' | 'instagram' | 'facebook' | 'x';
-
-export type CookieProvider = 'facebook' | 'instagram' | 'reddit' | 'tiktok';
-export type PreviewBehavior = 'automatic' | 'always' | 'never' | 'ask';
-export type PreviewCardMode = 'compact' | 'expanded';
-
-export interface CookieSessionRecord {
-  cookie: string;
-  updatedAt: number;
-  expiresAt?: number;
-}
-
-export interface CookieSessionStatus {
-  configured: boolean;
-  updatedAt?: number;
-  expiresAt?: number;
-  masked?: string;
-}
-
-export interface DomainRule {
-  behavior: PreviewBehavior;
-}
-
-export interface PluginSettings {
-  embedYouTube: boolean;
-  embedVimeo: boolean;
-  embedTikTok: boolean;
-  embedReddit: boolean;
-  embedX: boolean;
-  showImage: boolean;
-  showVideoPlayer: boolean;
-  fetchMultipleImages: boolean;
-  fetchDescription: boolean;
-  fetchSiteName: boolean;
-  fetchAuthor: boolean;
-  fetchContent: boolean;
-  lazyLoadMedia: boolean;
-  cacheMinutes: number;
-  maxCacheEntries: number;
-  maxDescriptionLength: number;
-  maxContentLength: number;
-  maxGalleryImages: number;
-  autoRefreshOnOpen: boolean;
-  useProviderCookies: boolean;
-  previewBehavior: PreviewBehavior;
-  previewCardMode: PreviewCardMode;
-  normalizeTrackingParams: boolean;
-  requestTimeoutMs: number;
-  failureCacheSeconds: number;
-  blockedDomains: string[];
-  domainRules: Record<string, DomainRule>;
-  recentPreviewUrls: string[];
-  failedPreviewUrls: string[];
+// Link Preview Card — faithful types from live Nihon 4.4.0 bundle (1745 lines)
+export interface LinkPreviewSettings {
+  autoPreview: boolean;
+  showDescription: boolean;
+  stripTrackers: boolean;
+  cardLayout: "standard" | "banner" | "compact";
+  mediaPosition: "left" | "right";
+  actionPlacement: "right" | "space-between" | "space-evenly" | "left";
+  cardRadius: "rounded" | "sharp" | "pill";
+  showFavicon: boolean;
+  placeholderStyle: "logo-name" | "icon-and-name";
+  placeholderFont: string;
+  glassmorphism: boolean;
+  visibleActions: {
+    copy: boolean;
+    alias: boolean;
+    image: boolean;
+    refresh: boolean;
+    open: boolean;
+    revert: boolean;
+  };
 }
 
 export interface PreviewData {
@@ -58,21 +26,7 @@ export interface PreviewData {
   url: string;
   title: string;
   description?: string;
+  imageUrl?: string;
+  favicon?: string;
   siteName?: string;
-  author?: string;
-  authorUrl?: string;
-  contentText?: string;
-  image?: string;
-  images?: string[];
-  video?: boolean;
-  videoUrl?: string;
-  provider?: ProviderId;
-  fetchedAt?: number;
-}
-
-export interface PreviewBlock {
-  startLine: number;
-  endLine: number;
-  source: string;
-  data: PreviewData;
 }
