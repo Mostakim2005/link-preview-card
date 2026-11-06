@@ -1,10 +1,10 @@
 {
-  "id": "link-preview-card",
-  "name": "Link Preview Card",
-  "version": "3.1.1",
-  "minAppVersion": "1.11.4",
-  "description": "Rich link previews with provider-aware metadata, caching, media, safe editing, and optional user-supplied social session cookies.",
-  "author": "Your Name",
-  "authorUrl": "",
-  "isDesktopOnly": false
+	"id": "link-preview-card",
+	"name": "Link Preview Card",
+	"version": "4.4.0",
+	"minAppVersion": "1.6.0",
+	"description": "Paste a link on an empty line to get an image preview card with alias, copy URL, refresh, and revert actions.",
+	"author": "Mostakim 4 Argon",
+	"authorUrl": "https://github.com/Mostakim2005",
+	"isDesktopOnly": false
 }
