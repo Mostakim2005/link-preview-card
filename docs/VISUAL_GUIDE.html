@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Link Preview Card — Visual Guide</title>
+<style>
+  :root {
+    --bg: #0f1217;
+    --panel: #171c24;
+    --panel-2: #1e2530;
+    --ink: #e8edf5;
+    --muted: #98a4b5;
+    --line: #2b3442;
+    --accent: #7dd3fc;
+    --accent-dim: #123647;
+    --amber: #fbbf24;
+    --red: #f87171;
+    --blue: #93c5fd;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: radial-gradient(1200px 600px at 20% -10%, #172a35 0%, var(--bg) 55%);
+    color: var(--ink);
+    font: 15px/1.6 "Segoe UI", system-ui, -apple-system, sans-serif;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 40px 24px 80px; }
+  header.hero {
+    border: 1px solid var(--line);
+    background: linear-gradient(135deg, rgba(125,211,252,.08), rgba(147,197,253,.04));
+    border-radius: 18px;
+    padding: 32px;
+    margin-bottom: 28px;
+  }
+  .eyebrow { color: var(--accent); font-size: 12px; letter-spacing: .18em; text-transform: uppercase; }
+  h1 { font-size: 38px; line-height: 1.15; margin: 10px 0 12px; }
+  h1 span { color: var(--accent); }
+  .lede { color: var(--muted); max-width: 760px; margin: 0; font-size: 16px; }
+  nav.toc { display: flex; flex-wrap: wrap; gap: 10px; margin: 24px 0 32px; }
+  nav.toc a {
+    border: 1px solid var(--line);
+    background: var(--panel);
+    padding: 7px 12px;
+    border-radius: 999px;
+    color: var(--ink);
+    font-size: 13px;
+  }
+  section { margin: 36px 0; }
+  h2 { font-size: 22px; margin: 0 0 6px; }
+  .sub { color: var(--muted); margin: 0 0 18px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 18px;
+  }
+  .card h3 { margin: 0 0 6px; font-size: 15px; color: var(--accent); }
+  .card p { margin: 0; color: var(--muted); font-size: 14px; }
+  .pill { display: inline-block; font-size: 11px; letter-spacing: .04em; padding: 2px 8px; border-radius: 999px; margin-bottom: 8px; }
+  .pill.ok { background: var(--accent-dim); color: var(--accent); }
+  .pill.warn { background: #3b2f13; color: var(--amber); }
+  .pill.bad { background: #3b1616; color: var(--red); }
+  .arch {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 22px;
+    overflow-x: auto;
+  }
+  .lanes { display: grid; grid-template-columns: repeat(4, minmax(190px, 1fr)); gap: 14px; min-width: 820px; }
+  .lane { background: var(--panel-2); border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
+  .lane h4 { margin: 0 0 10px; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+  .node { background: #121820; border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 8px; padding: 9px 11px; font-size: 13px; margin-bottom: 8px; }
+  .node small { display: block; color: var(--muted); font-size: 11px; }
+  table { width: 100%; border-collapse: collapse; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+  th, td { text-align: left; padding: 11px 14px; border-bottom: 1px solid var(--line); font-size: 14px; vertical-align: top; }
+  th { background: var(--panel-2); color: var(--muted); font-weight: 600; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; }
+  tr:last-child td { border-bottom: none; }
+  code { font-family: "Cascadia Code", Consolas, monospace; font-size: 12.5px; color: var(--blue); }
+  .flow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 12px 0; }
+  .step { background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 7px 11px; font-size: 13px; }
+  .arrow { color: var(--muted); }
+  .trap { border-left: 3px solid var(--red); }
+  .trap h3 { color: var(--red); }
+  footer { margin-top: 48px; color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); padding-top: 18px; }
+  .kbd { border: 1px solid var(--line); background: #10161e; border-radius: 5px; padding: 1px 6px; font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <div class="eyebrow">Obsidian plugin · visual guide</div>
+    <h1>Link Preview <span>Card</span></h1>
+    <p class="lede">Paste a URL, get a real preview card stored as plain note text. This dashboard explains the promise, the module map, the note format, and the rules that must survive future edits.</p>
+  </header>
+
+  <nav class="toc">
+    <a href="#intent">Intent</a>
+    <a href="#architecture">Architecture</a>
+    <a href="#format">Note format</a>
+    <a href="#features">Features</a>
+    <a href="#decisions">Decisions</a>
+    <a href="#traps">Traps</a>
+    <a href="#verify">Verification</a>
+  </nav>
+
+  <section id="intent">
+    <h2>What it is for</h2>
+    <p class="sub">The short version a new maintainer needs before touching code.</p>
+    <div class="grid">
+      <div class="card"><h3>Paste and move on</h3><p>A single URL on an empty line becomes a finished card in about a second, with no dialog and no configuration.</p></div>
+      <div class="card"><h3>Live in plain text</h3><p>Each card is a <code>~~~link-preview</code> fenced block, so it syncs with the vault and survives uninstalling the plugin.</p></div>
+      <div class="card"><h3>Privacy by default</h3><p>UTM tags, click IDs, and share tokens are stripped before a URL is fetched, stored, copied, or converted.</p></div>
+      <div class="card"><h3>Reversible everywhere</h3><p>Any card turns back into its link in one click, and every card edit is a normal note edit with undo.</p></div>
+      <div class="card"><h3>Bulk without fear</h3><p>The link manager converts selected rows only, rescans before writing, and splices bottom-up so line numbers stay valid.</p></div>
+      <div class="card"><h3>Looks intentional</h3><p>Three layouts, two media sides, three radii, and two placeholder styles; a card without an image still looks designed.</p></div>
+    </div>
+  </section>
+
+  <section id="architecture">
+    <h2>System map</h2>
+    <p class="sub">Four pure modules behind the UI; all host access goes through Obsidian APIs.</p>
+    <div class="arch">
+      <div class="lanes">
+        <div class="lane">
+          <h4>UI surfaces</h4>
+          <div class="node">Rendered card<small>reading view · live preview</small></div>
+          <div class="node">LinksModal<small>bulk manager · filters</small></div>
+          <div class="node">AliasModal / ImageModal<small>single-card edits</small></div>
+          <div class="node">LinkPreviewSettingTab<small>defaults · toggles</small></div>
+        </div>
+        <div class="lane">
+          <h4>Core modules</h4>
+          <div class="node">preview-block.ts<small>serialize · find · scan</small></div>
+          <div class="node">tracker.ts<small>cleanTrackingParams</small></div>
+          <div class="node">metadata.ts<small>fetchMeta · fetchAll</small></div>
+          <div class="node">note-actions.ts<small>apply · update · revert</small></div>
+          <div class="node">card-renderer.ts<small>DOM tree · actions</small></div>
+        </div>
+        <div class="lane">
+          <h4>Obsidian API</h4>
+          <div class="node">requestUrl<small>CORS-free fetch</small></div>
+          <div class="node">Editor<small>replaceRange · replaceSelection</small></div>
+          <div class="node">Vault<small>process · read · createBinary</small></div>
+          <div class="node">Workspace<small>events · menus · leaves</small></div>
+        </div>
+        <div class="lane">
+          <h4>Persisted state</h4>
+          <div class="node">Note markdown<small>fenced JSON block</small></div>
+          <div class="node">data.json<small>preferences only</small></div>
+          <div class="node">Attachments<small>link-preview-*.png</small></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="format">
+    <h2>Note format</h2>
+    <p class="sub">One fence, one JSON line, one bare closer. Empty values are omitted.</p>
+    <div class="arch">
+      <div class="flow">
+        <span class="step"><code>~~~link-preview</code></span>
+        <span class="arrow">→</span>
+        <span class="step"><code>{"url":"…","title":"…","image":"…","id":"lp-…"}</code></span>
+        <span class="arrow">→</span>
+        <span class="step"><code>~~~</code></span>
+      </div>
+      <table>
+        <thead><tr><th>Field</th><th>Meaning</th><th>Written by</th></tr></thead>
+        <tbody>
+          <tr><td><code>url</code></td><td>Clean target URL; required for the card to render</td><td>paste, convert, refresh</td></tr>
+          <tr><td><code>title</code>, <code>description</code>, <code>siteName</code></td><td>Fetched page metadata, truncated to 300 chars</td><td>metadata pipeline</td></tr>
+          <tr><td><code>image</code>, <code>icon</code></td><td>Thumbnail and favicon, HTTP URL or vault path</td><td>metadata or the image dialog</td></tr>
+          <tr><td><code>imageLocked</code></td><td>User chose the image; Refresh must not replace it</td><td>image dialog</td></tr>
+          <tr><td><code>alias</code></td><td>Display title override</td><td>alias dialog</td></tr>
+          <tr><td><code>id</code></td><td>Stable identity when two cards share a URL</td><td>every created card</td></tr>
+          <tr><td><code>layout</code>, <code>mediaPosition</code></td><td>Per-card overrides; settings fill the gaps</td><td>optional / future controls</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="features">
+    <h2>Feature contract</h2>
+    <p class="sub">If a change breaks one of these, it is a regression, not a refactor.</p>
+    <div class="grid">
+      <div class="card"><h3>Paste guard</h3><p>Auto-convert only when: setting on, no selection, exactly one URL, blank cursor line, outside any fence.</p></div>
+      <div class="card"><h3>Failure restore</h3><p>A failed fetch puts the original pasted text back and says so; it never leaves an empty card.</p></div>
+      <div class="card"><h3>Editor-first edits</h3><p>Card changes go through the live editor when the note is open, else flush and process the file.</p></div>
+      <div class="card"><h3>Bottom-up bulk</h3><p>Multi-row conversion sorts by line descending before splicing, so offsets never shift under it.</p></div>
+      <div class="card"><h3>Image lock</h3><p>Manual image sets <code>imageLocked</code>; Refresh updates text but keeps the chosen image.</p></div>
+      <div class="card"><h3>Bounded fetches</h3><p>Three concurrent metadata requests, 10-second timeout each, progress after every completion.</p></div>
+      <div class="card"><h3>No double open</h3><p>Action buttons stop propagation; the card-level click opens the link only from non-interactive areas.</p></div>
+      <div class="card"><h3>Malformed safety</h3><p>Invalid JSON or a non-HTTP URL renders as raw text; <code>window.open</code> only runs on parsed URLs.</p></div>
+    </div>
+  </section>
+
+  <section id="decisions">
+    <h2>Decisions worth knowing</h2>
+    <p class="sub">Each one replaced a specific failure.</p>
+    <div class="grid">
+      <div class="card"><span class="pill ok">Chosen</span><h3>Markdown as database</h3><p>Cards travel with the note. A path-keyed store would orphan cards on rename and lose everything on uninstall.</p></div>
+      <div class="card"><span class="pill ok">Chosen</span><h3>Tilde fences</h3><p><code>~~~</code> avoids collisions with the backtick fences used everywhere else in notes.</p></div>
+      <div class="card"><span class="pill ok">Chosen</span><h3>Id then URL</h3><p>Two cards for one URL stay independent because edits match the stored id first.</p></div>
+      <div class="card"><span class="pill ok">Chosen</span><h3>Rescan at write time</h3><p>Bulk targets are re-matched against fresh text; vanished links are skipped instead of mis-replaced.</p></div>
+      <div class="card"><span class="pill ok">Chosen</span><h3>Defaults at render</h3><p><code>data.layout || settings.layout</code> applies new preferences to old cards without rewriting notes.</p></div>
+      <div class="card"><span class="pill ok">Chosen</span><h3>Picker delegation</h3><p>Use Note Toolbox's browser when available, then its generic picker, then the built-in fuzzy list.</p></div>
+    </div>
+  </section>
+
+  <section id="traps">
+    <h2>Landmines</h2>
+    <p class="sub">The failures that look like small cleanups until they corrupt a note.</p>
+    <div class="grid">
+      <div class="card trap"><span class="pill bad">Trap</span><h3>CRLF notes</h3><p>Detect <code>\r\n</code> once per write; joining with <code>\n</code> rewrites every line of a Windows note.</p></div>
+      <div class="card trap"><span class="pill bad">Trap</span><h3>Empty values</h3><p><code>serialize</code> drops empty strings; that is how "remove image" clears the field.</p></div>
+      <div class="card trap"><span class="pill bad">Trap</span><h3>Shallow settings merge</h3><p><code>visibleActions</code> needs its own nested merge, or new toggles vanish for existing users.</p></div>
+      <div class="card trap"><span class="pill bad">Trap</span><h3>Inline URLs</h3><p>Only whole-line links are convertible; URLs in prose stay informational.</p></div>
+      <div class="card trap"><span class="pill bad">Trap</span><h3>Click bubbling</h3><p>Without the button/anchor guard, every toolbar action also opens a browser tab.</p></div>
+      <div class="card trap"><span class="pill bad">Trap</span><h3>No request timeout</h3><p><code>requestUrl</code> never times out on its own; the 10-second race is load-bearing.</p></div>
+      <div class="card trap"><span class="pill bad">Trap</span><h3>Vault image paths</h3><p>Raw paths in <code>&lt;img src&gt;</code> break; resolve through <code>getResourcePath</code>.</p></div>
+      <div class="card trap"><span class="pill bad">Trap</span><h3>runtime/ drift</h3><p>The frozen bundle is the user's rollback. Never build into it.</p></div>
+    </div>
+  </section>
+
+  <section id="verify">
+    <h2>Verification</h2>
+    <p class="sub">A change is done only when these pass.</p>
+    <table>
+      <thead><tr><th>Check</th><th>Command</th><th>Pass condition</th></tr></thead>
+      <tbody>
+        <tr><td>Types</td><td><code>npx tsc -noEmit -skipLibCheck</code></td><td>exit 0</td></tr>
+        <tr><td>Lint</td><td><code>npm run lint</code></td><td>0 errors; warnings reviewed</td></tr>
+        <tr><td>Bundle</td><td><code>npm run build</code></td><td>root <code>main.js</code> regenerated</td></tr>
+        <tr><td>Docs</td><td>header/summary count loop</td><td>equal counts in all three Markdown docs</td></tr>
+        <tr><td>Smoke</td><td>manual paste + manager pass</td><td>YouTube and article cards, bulk convert, locked refresh, revert</td></tr>
+      </tbody>
+    </table>
+    <div class="flow" style="margin-top:14px">
+      <span class="step"><span class="kbd">Ctrl</span>+<span class="kbd">V</span> paste a URL</span>
+      <span class="step"><span class="kbd">Click</span> card body opens link</span>
+      <span class="step"><span class="kbd">Right-click</span> card actions</span>
+      <span class="step"><span class="kbd">Esc</span> close dialog</span>
+    </div>
+  </section>
+
+  <footer>
+    Link Preview Card · TypeScript port of the live 4.4.0 bundle · Docs: PRODUCT, ARCHITECTURE, DECISIONS_AND_TRAPS.
+  </footer>
+</div>
+</body>
+</html>
