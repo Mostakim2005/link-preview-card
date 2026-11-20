@@ -31,8 +31,8 @@ const UNIVERSAL_TRACKING_PARAMS = new Set([
  * across YouTube, Twitter/X, Spotify, Amazon, Facebook, Google, Reddit,
  * ChatGPT, Telegram, Substack, and Medium.
  */
-export function cleanTrackingParams(urlStr: string): string {
-	if (!urlStr || typeof urlStr !== "string") return urlStr;
+export function cleanTrackingParams(urlStr: string, depth = 0): string {
+	if (!urlStr || typeof urlStr !== "string" || depth > 5) return urlStr;
 	try {
 		const u = new URL(urlStr.trim());
 
@@ -42,14 +42,14 @@ export function cleanTrackingParams(urlStr: string): string {
 			u.searchParams.has("q")
 		) {
 			const target = u.searchParams.get("q");
-			if (target && /^https?:\/\//i.test(target)) return cleanTrackingParams(target);
+			if (target && /^https?:\/\//i.test(target)) return cleanTrackingParams(target, depth + 1);
 		}
 		if (
 			(u.hostname.includes("facebook.com") || u.hostname.includes("messenger.com")) &&
 			(u.pathname === "/l.php" || u.pathname === "/l/")
 		) {
 			const target = u.searchParams.get("u");
-			if (target && /^https?:\/\//i.test(target)) return cleanTrackingParams(target);
+			if (target && /^https?:\/\//i.test(target)) return cleanTrackingParams(target, depth + 1);
 		}
 
 		const host = u.hostname.toLowerCase();
@@ -110,7 +110,12 @@ export function cleanTrackingParams(urlStr: string): string {
 				toDelete.push(key);
 				continue;
 			}
-			if (lower === "ref" || lower === "referrer") {
+			if (
+				(lower === "ref" || lower === "referrer") &&
+				!host.includes("github.com") &&
+				!host.includes("gitlab.com") &&
+				!host.includes("bitbucket.org")
+			) {
 				toDelete.push(key);
 				continue;
 			}

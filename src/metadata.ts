@@ -9,12 +9,13 @@ interface YouTubeOEmbed {
 }
 
 function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
-	return Promise.race([
-		promise,
-		new Promise<T>((_, reject) =>
-			window.setTimeout(() => reject(new Error("Timeout")), ms),
-		),
-	]);
+	let timer: number | undefined;
+	const timeout = new Promise<T>((_, reject) => {
+		timer = window.setTimeout(() => reject(new Error("Timeout")), ms);
+	});
+	return Promise.race([promise, timeout]).finally(() => {
+		if (timer !== undefined) window.clearTimeout(timer);
+	});
 }
 
 /** Fetches OpenGraph/Twitter metadata for one URL. */
@@ -25,16 +26,20 @@ export async function fetchMeta(urlStr: string, stripTrackers = true): Promise<P
 	const host = hostOf(cleanUrl);
 
 	if (host.includes("youtube.com") || host.includes("youtu.be")) {
+		const shortsMatch = parsed.pathname.match(/^\/(?:shorts|embed|live)\/([A-Za-z0-9_-]{6,})/);
 		const videoId = host.includes("youtu.be")
-			? parsed.pathname.slice(1)
-			: parsed.searchParams.get("v") || "";
+			? (parsed.pathname.slice(1).split("/")[0] || "")
+			: parsed.searchParams.get("v") || shortsMatch?.[1] || "";
 		if (videoId) {
 			const image = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
 			try {
-				const oembed = await requestUrl({
-					url: `https://www.youtube.com/oembed?url=${encodeURIComponent(cleanUrl)}&format=json`,
-					throw: false,
-				});
+				const oembed = await withTimeout(
+					requestUrl({
+						url: `https://www.youtube.com/oembed?url=${encodeURIComponent(cleanUrl)}&format=json`,
+						throw: false,
+					}),
+					TIMEOUT_MS,
+				);
 				if (oembed.status === 200) {
 					const json = oembed.json as YouTubeOEmbed;
 					return {

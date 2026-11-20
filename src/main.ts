@@ -64,16 +64,23 @@ export default class LinkPreviewCard extends Plugin {
 	}
 
 	async onload(): Promise<void> {
-		const raw = ((await this.loadData()) ?? {}) as Partial<LinkPreviewSettings>;
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, raw);
-		if (raw.visibleActions) {
-			this.settings.visibleActions = Object.assign(
-				{},
-				DEFAULT_SETTINGS.visibleActions,
-				raw.visibleActions,
-			);
+		const raw = ((await this.loadData()) ?? {}) as Record<string, unknown>;
+		const knownRaw: Partial<LinkPreviewSettings> = {};
+		let hasUnknown = false;
+		for (const key of Object.keys(raw)) {
+			if (key in DEFAULT_SETTINGS) {
+				(knownRaw as Record<string, unknown>)[key] = raw[key];
+			} else {
+				hasUnknown = true;
+			}
 		}
-		if (Object.keys(raw).some((key) => !(key in DEFAULT_SETTINGS))) {
+		this.settings = Object.assign({}, DEFAULT_SETTINGS, knownRaw);
+		this.settings.visibleActions = Object.assign(
+			{},
+			DEFAULT_SETTINGS.visibleActions,
+			knownRaw.visibleActions ?? {},
+		);
+		if (hasUnknown) {
 			await this.saveData(this.settings);
 		}
 
@@ -427,7 +434,8 @@ export default class LinkPreviewCard extends Plugin {
 			void this.refresh(sourcePath, data);
 		});
 		add("Open link", "external-link", () => {
-			window.open(data.url, "_blank", "noopener,noreferrer");
+			const safe = parseUrl(data.url);
+			if (safe) window.open(safe.href, "_blank", "noopener,noreferrer");
 		});
 		menu.addSeparator();
 		add("Turn back into link", "undo", () => {

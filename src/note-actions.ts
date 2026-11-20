@@ -127,10 +127,16 @@ export async function cleanTrackersInFile(
 			}
 		}
 
+		let inFence = false;
 		for (let i = 0; i < lines.length; i++) {
 			const raw = lines[i] ?? "";
-			if (raw.trim().startsWith("```") || raw.trim().startsWith("~~~")) continue;
-			const whole = parseUrl(raw.trim());
+			const trimmed = raw.trim();
+			if (trimmed.startsWith("```") || trimmed.startsWith("~~~")) {
+				inFence = !inFence;
+				continue;
+			}
+			if (inFence) continue;
+			const whole = parseUrl(trimmed);
 			if (whole) {
 				const cleaned = cleanTrackingParams(whole.href);
 				if (cleaned !== whole.href) {

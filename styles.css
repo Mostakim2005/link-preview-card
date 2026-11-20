@@ -8,7 +8,7 @@
   --lpc-glass-border: rgba(var(--interactive-accent-rgb, 0, 168, 132), 0.22);
   --lpc-glass-border-subtle: rgba(var(--interactive-accent-rgb, 0, 168, 132), 0.14);
   --lpc-glass-shadow: 0 8px 24px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(var(--interactive-accent-rgb, 0, 168, 132), 0.1);
-  --lpc-glass-hover-bg: rgba(var(--background-secondary-rgb, 30, 30, 30), 0.88);
+  --lpc-glass-hover-bg: color-mix(in srgb, var(--background-secondary) 88%, transparent);
   --lpc-media-bg: var(--background-primary-alt, var(--background-primary));
   container-type: inline-size;
   margin: 12px 0;
@@ -360,7 +360,7 @@ body:not(.lpc-glassmorphic) .lpc-root {
   padding: 20px 0 0;
   border-radius: var(--radius-l, 18px);
   overflow: hidden;
-  background: rgba(var(--background-primary-rgb, 30, 30, 30), 0.82) !important;
+  background: color-mix(in srgb, var(--background-primary) 86%, transparent) !important;
   backdrop-filter: blur(16px) saturate(160%) !important;
   -webkit-backdrop-filter: blur(16px) saturate(160%) !important;
   border: 1px solid rgba(var(--interactive-accent-rgb, 0, 168, 132), 0.22) !important;
