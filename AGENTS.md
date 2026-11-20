@@ -1,5 +1,5 @@
 # Project Operating Instructions (`AGENTS.md`)
-> **Notice:** This project inherits user persona, confirmation gates, and documentation blueprints from the global master `AGENTS.md`. Do not duplicate those rules here.
+> **Notice:** This project inherits user persona, confirmation gates, visual standards, and documentation blueprints from the global master `AGENTS.md`. Do not duplicate those rules here.
 
 ## 1. Project Tech Stack & Environment
 * **Runtime / Language:** Node.js 18+, TypeScript 5.8 (`strict` + `noUncheckedIndexedAccess`).
@@ -26,20 +26,15 @@
   * `settings-tab.ts` — settings UI.
   * `settings.ts` / `types.ts` — defaults and shared contracts.
   * `async.ts` — `voidAsync` wrapper for async DOM listeners.
-* `docs/` — `PRODUCT.md`, `ARCHITECTURE.md`, `DECISIONS_AND_TRAPS.md`, `VISUAL_GUIDE.html`.
+* `docs/` — Core Markdown documentation suite (`PRODUCT.md`, `ARCHITECTURE.md`, `DECISIONS_AND_TRAPS.md`, `VISUAL_LOG.md`).
+* `preview/` — On-demand interactive HTML/CSS/JS visual previews (e.g., `preview/visual-guide.html`), created only upon explicit request.
 * `runtime/` — frozen plug-and-play bundle (`main.js`, `manifest.json`, `styles.css`) kept as the emergency fallback. Never regenerate into this folder.
 * `main.js` at the root is a generated build artifact; edit `src/` instead.
 
-## 4. Repository-Specific Engineering Traps
-* **TRAP 1:** The card format is user data. Changing `FENCE_OPEN`, the JSON field names, or dropping `id` without a compatibility path silently breaks every existing card.
-* **TRAP 2:** Every write must preserve the note's newline style. Detect `text.includes("\r\n")` and join with that separator; a plain `\n` join rewrites entire Windows notes.
-* **TRAP 3:** Bulk conversion must sort jobs by descending line before splicing, or card insertions shift the line numbers of the remaining targets.
-* **TRAP 4:** Prefer `editor.replaceRange` when the note has an open `MarkdownView`; writing through `vault.process` can discard unsaved buffer content. Flush before the vault fallback.
-* **TRAP 5:** `serialize` removes empty strings, `undefined`, and `null` on purpose. Replacing it with plain `JSON.stringify` reintroduces empty fields and breaks image removal.
-* **TRAP 6:** `imageLocked` means "the user chose this image". `refresh()` must not overwrite it; only the "Automatic" image action clears it.
-* **TRAP 7:** `fetchMeta` must always run under the `withTimeout` race. `requestUrl` has no timeout and a dead host would hang the paste.
-* **TRAP 8:** `renderPreviewCard` must validate JSON and the URL scheme before building DOM. A `javascript:` URL must never reach `window.open` or an anchor.
-* **TRAP 9:** `.lpc-*` classes are a contract with `styles.css`; renaming one side without the other removes layout, placeholder, or action styling.
-* **TRAP 10:** The `visibleActions` settings object needs its own nested merge on load. A shallow merge drops newly added toggles for existing users.
-* **TRAP 11:** `scanLinks` classifies whole-line URLs as `link` and embedded URLs as `inline`; `inline` rows must stay non-convertible.
-* **TRAP 12:** The public API (`cleanUrl`, `fetchMetadata`, `insertPreviewCard`, `cleanAllLinksInActiveFile`) and `openVaultImageChooser`'s Note Toolbox calls are consumed by other plugins. Do not rename or reorder their arguments.
+## 4. Critical Trap Pointers (1-Line Warnings Only)
+* **TRAP 1:** Never change the `~~~link-preview` card fence format or JSON field names without migration — see `docs/DECISIONS_AND_TRAPS.md` -> `[TRAP: Fence-Format-Compatibility]`.
+* **TRAP 2:** Splicing bulk conversions must sort in descending line order to prevent offset shifts — see `docs/DECISIONS_AND_TRAPS.md` -> `[TRAP: Splicing-Line-Shift]`.
+* **TRAP 3:** Preserve Windows `\r\n` newlines across note writes — see `docs/DECISIONS_AND_TRAPS.md` -> `[TRAP: Line-Ending-Corruption]`.
+* **TRAP 4:** Prefer `editor.replaceRange` over `vault.process` to prevent dropping unsaved editor buffers — see `docs/DECISIONS_AND_TRAPS.md` -> `[TRAP: Unsaved-Buffer-Clobber]`.
+* **TRAP 5:** Always wrap `requestUrl` in `withTimeout` to prevent hanging paste operations — see `docs/DECISIONS_AND_TRAPS.md` -> `[TRAP: Timeout-Versus-Hanging-Request]`.
+* **TRAP 6:** Sanitize incoming URLs and reject `javascript:` schemes before building DOM — see `docs/DECISIONS_AND_TRAPS.md` -> `[TRAP: Untrusted-JSON-In-Notes]`.
