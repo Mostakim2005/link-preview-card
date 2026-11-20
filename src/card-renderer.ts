@@ -56,6 +56,7 @@ export function renderPreviewCard(
 		const box = media.createDiv({ cls: `lpc-placeholder is-${styleMode}` });
 
 		if (styleMode === "icon-and-name") {
+			card.querySelector(".lpc-site-favicon")?.remove();
 			const tile = box.createDiv({
 				cls: "lpc-avatar",
 				text: (logoLabel[0] || host[0] || "?").toUpperCase(),

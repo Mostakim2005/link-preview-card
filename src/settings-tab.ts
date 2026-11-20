@@ -125,7 +125,7 @@ export class LinkPreviewSettingTab extends PluginSettingTab {
 				dropdown
 					.addOption("rounded", "Rounded (14px)")
 					.addOption("sharp", "Subtle (6px)")
-					.addOption("pill", "Soft pill (20px)")
+					.addOption("pill", "Soft pill (22px)")
 					.setValue(this.plugin.settings.cardRadius)
 					.onChange(async (value) => {
 						this.plugin.settings.cardRadius = value as typeof this.plugin.settings.cardRadius;

@@ -226,27 +226,39 @@ export async function insertPreview(
 	line?: number,
 ): Promise<void> {
 	const notice = new Notice("Fetching preview…", 15000);
+	const finalUrl = plugin.settings.stripTrackers ? cleanTrackingParams(href) : href;
+	const placeholderText = (original ?? finalUrl).trim();
+	let targetLine = line;
+	let insertedPlaceholder = false;
+
+	if (targetLine === undefined) {
+		targetLine = editor.getCursor().line;
+		editor.replaceSelection(placeholderText);
+		insertedPlaceholder = true;
+	}
+
 	try {
-		const finalUrl = plugin.settings.stripTrackers ? cleanTrackingParams(href) : href;
 		const meta = await fetchMeta(finalUrl, plugin.settings.stripTrackers);
-		const block =
-			serialize({
-				...meta,
-				url: finalUrl,
-				id: makeId(),
-				fetchedAt: Date.now(),
-			}) + "\n";
-		if (line === undefined) {
-			editor.replaceSelection(block);
-		} else {
-			editor.replaceRange(
-				block.trimEnd(),
-				{ line, ch: 0 },
-				{ line, ch: editor.getLine(line).length },
-			);
+		const block = serialize({
+			...meta,
+			url: finalUrl,
+			id: makeId(),
+			fetchedAt: Date.now(),
+		});
+		if (targetLine >= 0 && targetLine < editor.lineCount()) {
+			const currentLineText = editor.getLine(targetLine);
+			if (!insertedPlaceholder || currentLineText.trim() === placeholderText) {
+				editor.replaceRange(
+					block,
+					{ line: targetLine, ch: 0 },
+					{ line: targetLine, ch: currentLineText.length },
+				);
+				return;
+			}
 		}
+		// User edited or moved the pasted line during fetch; leave their edits intact.
+		new Notice("Note changed while fetching preview; kept the plain link.");
 	} catch {
-		if (line === undefined && original) editor.replaceSelection(original);
 		new Notice("Couldn't load a preview. Kept the plain link.");
 	} finally {
 		notice.hide();
