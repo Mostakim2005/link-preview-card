@@ -11,6 +11,7 @@ import { voidAsync } from "./async";
 import { renderPreviewCard } from "./card-renderer";
 import { fetchMeta } from "./metadata";
 import { AliasModal, ImageModal, ImagePicker, LinksModal } from "./modals";
+import { ConfirmModal } from "./confirm-modal";
 import {
 	applyChanges,
 	cleanTrackersInFile,
@@ -135,12 +136,34 @@ export default class LinkPreviewCard extends Plugin {
 					new Notice("Open a markdown note first.");
 					return;
 				}
-				await this.cleanTrackersInFile(file, true);
+				new ConfirmModal(this.app, {
+					title: "Clean tracking parameters in note?",
+					message: `Strip UTM and telemetry parameters from all links in "${file.basename}"?`,
+					confirmLabel: "Clean links",
+					cssPrefix: "lpc",
+					onConfirm: async () => {
+						await this.cleanTrackersInFile(file, true);
+					},
+				}).open();
 			},
 		});
 
 		this.addRibbonIcon("link", "Manage links in current note", () => {
 			void this.openManager();
+		});
+
+		const statusEl = this.addStatusBarItem();
+		statusEl.addClass("lpc-status-pill");
+		statusEl.setText("Links: Manage");
+		statusEl.setAttribute("role", "button");
+		statusEl.setAttribute("tabindex", "0");
+		statusEl.setAttribute("aria-label", "Manage links in current note");
+		statusEl.addEventListener("click", () => void this.openManager());
+		statusEl.addEventListener("keydown", (evt: KeyboardEvent) => {
+			if (evt.key === "Enter" || evt.key === " ") {
+				evt.preventDefault();
+				void this.openManager();
+			}
 		});
 
 		this.addSettingTab(new LinkPreviewSettingTab(this.app, this));

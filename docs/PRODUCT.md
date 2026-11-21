@@ -121,3 +121,9 @@
 * `fetchMetadata(url)` — returns `PreviewData` without touching a note.
 * `insertPreviewCard(editor, url)` — fetches and inserts a card at the cursor.
 * `cleanAllLinksInActiveFile()` — cleans the active note and returns the change count.
+
+### [FEATURE: UI-UX-Parity-And-Accessibility] | Aliases: confirm modal, links manage status bar, focus visible, reduced motion
+> **1-Line Summary:** Implements ConfirmModal guardrail for bulk link tracker purge operations, clickable Links: Manage Status Bar pill, and WCAG accessibility styles.
+* **User Intention (Non-Negotiable):** Prevent accidental link metadata loss during bulk cleanup and offer quick status bar toggling for preview management.
+* **Visual / UI Behavior:** Purging link cache triggers confirmation dialog; status bar pill indicates tracking status and opens manager modal on click.
+* **Code Anchors (Grep Targets):** `src/confirm-modal.ts`, `src/main.ts`, `styles.css`
