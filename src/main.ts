@@ -52,7 +52,11 @@ interface PluginRegistryHost {
 }
 
 export default class LinkPreviewCard extends Plugin {
-	settings!: LinkPreviewSettings;
+	settings: LinkPreviewSettings = {
+		...DEFAULT_SETTINGS,
+		visibleActions: { ...DEFAULT_SETTINGS.visibleActions },
+	};
+	private settingsReady: Promise<void> = Promise.resolve();
 	private menuSeen = new WeakSet<Menu>();
 
 	applyThemePreferences(): void {
@@ -64,7 +68,7 @@ export default class LinkPreviewCard extends Plugin {
 		}
 	}
 
-	async onload(): Promise<void> {
+	private async loadSettings(): Promise<void> {
 		const raw = ((await this.loadData()) ?? {}) as Record<string, unknown>;
 		const knownRaw: Partial<LinkPreviewSettings> = {};
 		let hasUnknown = false;
@@ -84,8 +88,12 @@ export default class LinkPreviewCard extends Plugin {
 		if (hasUnknown) {
 			await this.saveData(this.settings);
 		}
+	}
 
-		this.applyThemePreferences();
+	onload(): void {
+		this.settingsReady = this.loadSettings().then(() => {
+			this.applyThemePreferences();
+		});
 
 		this.registerMarkdownCodeBlockProcessor("link-preview", (source, el, ctx) =>
 			this.renderCard(source, el, ctx),
@@ -184,8 +192,9 @@ export default class LinkPreviewCard extends Plugin {
 		});
 	}
 
-	saveSettings(): Promise<void> {
-		return this.saveData(this.settings);
+	async saveSettings(): Promise<void> {
+		await this.settingsReady;
+		await this.saveData(this.settings);
 	}
 
 	openVaultImageChooser(onChoosePath: (path: string) => void): void {
